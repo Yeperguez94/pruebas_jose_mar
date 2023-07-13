@@ -1,1 +1,122 @@
+le adjuntare a este archivo1, un script de una base de datos en My SQL
+
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema LIBRERIA
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema LIBRERIA
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `LIBRERIA` DEFAULT CHARACTER SET utf8 ;
+USE `LIBRERIA` ;
+
+-- -----------------------------------------------------
+-- Table `LIBRERIA`.`LIBROS_LIBRERIA`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `LIBRERIA`.`LIBROS_LIBRERIA` (
+  `id_libro` INT NOT NULL,
+  `titulo` VARCHAR(100) NULL,
+  `autor` VARCHAR(100) NULL,
+  `precio` DECIMAL(10,2) NULL,
+  `cantidad_en_stock` INT NULL,
+  PRIMARY KEY (`id_libro`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `LIBRERIA`.`CLIENTES_LIBRERIA`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `LIBRERIA`.`CLIENTES_LIBRERIA` (
+  `id_cliente` INT NOT NULL,
+  `nombre` VARCHAR(100) NULL,
+  `apellido` VARCHAR(100) NULL,
+  `email` VARCHAR(100) NULL,
+  `direccion` VARCHAR(255) NULL,
+  PRIMARY KEY (`id_cliente`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `LIBRERIA`.`PEDIDOS_LIBRERIA`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `LIBRERIA`.`PEDIDOS_LIBRERIA` (
+  `id_pedido` INT NOT NULL,
+  `fecha_pedido` DATETIME NULL,
+  `id_cliente` INT NOT NULL,
+  PRIMARY KEY (`id_pedido`, `id_cliente`),
+  INDEX `fk_PEDIDOS_CLIENTES_idx` (`id_cliente` ASC) VISIBLE,
+  CONSTRAINT `fk_PEDIDOS_CLIENTES`
+    FOREIGN KEY (`id_cliente`)
+    REFERENCES `LIBRERIA`.`CLIENTES_LIBRERIA` (`id_cliente`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `LIBRERIA`.`DETALLE_PEDIDOS_LIBRERIA`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `LIBRERIA`.`DETALLE_PEDIDOS_LIBRERIA` (
+  `id_detalle` INT NOT NULL,
+  `cantidad` INT NULL,
+  `id_pedido` INT NOT NULL,
+  `id_libro` INT NOT NULL,
+  PRIMARY KEY (`id_detalle`, `id_pedido`, `id_libro`),
+  INDEX `fk_DETALLE_PEDIDOS_PEDIDO1_idx` (`id_pedido` ASC) VISIBLE,
+  INDEX `fk_DETALLE_PEDIDOS_LIBROS1_idx` (`id_libro` ASC) VISIBLE,
+  CONSTRAINT `fk_DETALLE_PEDIDOS_PEDIDO1`
+    FOREIGN KEY (`id_pedido`)
+    REFERENCES `LIBRERIA`.`PEDIDOS_LIBRERIA` (`id_pedido`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_DETALLE_PEDIDOS_LIBROS1`
+    FOREIGN KEY (`id_libro`)
+    REFERENCES `LIBRERIA`.`LIBROS_LIBRERIA` (`id_libro`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+#PREGUNTA 1 LOS 10 LIBROS MAS VENDIDOS
+
+SELECT libros_libreria.titulo, libros_libreria.autor, sum(detalle_pedidos_libreria.cantidad) AS total_vendido
+FROM detalle_pedidos_libreria
+INNER JOIN libros_libreria ON detalle_pedidos_libreria.id_libro = libros_libreria.id_libro
+GROUP BY libros_libreria.titulo, libros_libreria.autor
+ORDER BY total_vendido desc limit 10;
+
+#PREGUNTA 2 los 5 clientes que compran mas libros
+
+SELECT clientes_libreria.nombre, clientes_libreria.apellido, sum(detalle_pedidos_libreria.cantidad) as total_comprado
+FROM detalle_pedidos_libreria
+INNER JOIN pedidos_libreria ON detalle_pedidos_libreria.id_pedido = pedidos_libreria.id_pedido
+INNER JOIN clientes_libreria ON pedidos_libreria.id_cliente = clientes_libreria.id_cliente
+GROUP BY clientes_libreria.nombre, clientes_libreria.apellido
+ORDER BY total_comprado DESC
+LIMIT 5;
+
+#PREGUNTA 3 TOTAL VENTAS PARA EL LIBRO '1984' DE GEORGE ORWELL
+
+SELECT libros_libreria.titulo, libros_libreria.autor, sum(detalle_pedidos_libreria.cantidad*libros_libreria.precio) AS ventas_totales
+FROM detalle_pedidos_libreria
+INNER JOIN libros_libreria ON libros_libreria.id_libro = detalle_pedidos_libreria.id_libro
+WHERE libros_libreria.titulo = '1984' AND libros_libreria.autor = 'George Orwell'
+GROUP BY libros_libreria.titulo, libros_libreria.autor;
+
+#4 ACTUALIZAR CANTIDAD DE STOCK EN LIBROS DE MENOS DE 10 UNIDADES suponemos q ahora tenemos 20 libros en stock
+ 
+UPDATE libros_libreria SET cantidad_en_stock =20
+WHERE cantidad_en_stock < 10;
+
+
 
