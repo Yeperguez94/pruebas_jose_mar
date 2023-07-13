@@ -1,5 +1,6 @@
 He creado un archivo llamado RTP
 
+rama_new
+¿quedara este cambio en el archivo rtp de la main?
 quiero saber si este cambio se ve en el main
-
-una vez que se conecta la ramificacion con el main, se ve el mensaje anterior. ahora quiero saber si esto q escribi se ve en el mismo archivo rtp pero en la ramificacion
+una vez que se conecta la ramificacion con el main, se ve el mensaje anterior. ahora quiero saber si esto q escribi se ve en el mismo archivo rtp pero en
